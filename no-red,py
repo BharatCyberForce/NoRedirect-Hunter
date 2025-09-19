@@ -1,0 +1,116 @@
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import requests, urllib.parse, argparse
+from colorama import Fore, init
+from urllib.parse import urlparse
+
+init(autoreset=True)
+
+G=Fore.GREEN;Y=Fore.YELLOW;W=Fore.WHITE;R=Fore.RED;C=Fore.CYAN
+
+
+headers={"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36","Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"}
+
+
+
+
+paths=["admin/dashboard.php","admin/index.php","administrator/","adminpanel/index.php","controlpanel/index.php","ADMIN/index.php","wp-admin/","admin/Dashboard.php","user/login","manage/","admin/dist/index.php"]
+keywords=['dashboard','logout']
+
+
+
+
+def normalize(url):
+    s=url.strip()
+    if not s: return ''
+    if not (s.startswith('http://') or s.startswith('https://')): s='http://'+s
+    return s.rstrip('/')
+
+def readfile(path):
+    try:
+        with open(path,'r') as h: return [l.strip() for l in h if l.strip()]
+    except: return []
+
+def get(u,timeout,follow):
+    try:
+        return requests.get(u,timeout=timeout,headers=headers,allow_redirects=follow,verify=True)
+    except Exception as e:
+        return e
+
+def job(base,p,timeout,follow):
+    full=urllib.parse.urljoin(base+'/',p)
+    resp=get(full,timeout,follow)
+    return (full,resp)
+
+def runscan(target,args):
+    saved=[]
+    with ThreadPoolExecutor(max_workers=args.threads) as pool:
+        futs=[pool.submit(job,target,p,args.timeout,args.follow_redirects) for p in paths]
+        for f in as_completed(futs):
+            url,resp=f.result()
+            if isinstance(resp, Exception):
+                print(W+url+" "+R+"(ERR)")
+                continue
+            code=resp.status_code
+            body=(resp.text or '').lower()
+            note=''
+            for k in keywords:
+                if k in body:
+                    note='keyword:'+k
+                    break
+            if code==200:
+                if note:
+                    print(W+url+" "+G+"(200)"+W+" · "+W+note)
+                else:
+                    print(W+url+" "+G+"(200)")
+                saved.append(urlparse(url).netloc+urlparse(url).path)
+            elif 300<=code<400:
+                if note:
+                    print(W+url+" "+Y+"("+str(code)+")"+W+" · "+W+note)
+                else:
+                    print(W+url+" "+Y+"("+str(code)+")")
+                saved.append(urlparse(url).netloc+urlparse(url).path)
+            elif code==404:
+                print(W+url+" "+R+"(404)")
+            elif code>=400:
+                print(W+url+" "+R+"("+str(code)+")")
+            else:
+                print(W+url+" "+Y+"("+str(code)+")")
+    return saved
+
+def main():
+    p=argparse.ArgumentParser()
+    g=p.add_mutually_exclusive_group(required=True)
+    g.add_argument('-u','--url')
+    g.add_argument('-f','--file')
+    p.add_argument('--follow-redirects',action='store_true')
+    p.add_argument('-o','--output',help='txt output')
+    p.add_argument('--timeout',type=int,default=6)
+    p.add_argument('-t','--threads',type=int,default=12)
+    args=p.parse_args()
+    targets=[]
+    if args.url: targets=[normalize(args.url)]
+    else: targets=[normalize(x) for x in readfile(args.file) if x]
+    if not targets:
+        print(R+'no targets')
+        return
+
+    print(C+"No Redirect Hunter")
+    print(C+"            bY ICF")
+
+
+    allsaved=[]
+    for t in targets:
+        saved=runscan(t,args)
+        allsaved.extend(saved)
+    if args.output:
+        try:
+            with open(args.output,'w') as fh:
+                fh.write('\n'.join(allsaved))
+            print(G+'saved: '+args.output+' ('+str(len(allsaved))+')')
+        except Exception as err:
+            print(R+'save err: '+str(err))
+
+if __name__=='__main__':
+    main()
+
+
