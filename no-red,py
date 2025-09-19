@@ -94,7 +94,7 @@ def main():
         print(R+'no targets')
         return
 
-    print(C+"No Redirect Hunter")
+    print(C+"|No Redirect Hunter|")
     print(C+"            bY ICF")
 
 
