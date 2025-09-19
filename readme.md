@@ -4,9 +4,9 @@
 
 ## Features
 
-* Multi-threaded scanning of a fixed list of common admin/management paths.
-* Detects status codes (200, 3xx, 4xx, 5xx) and highlights responses containing configured keywords (`dashboard`, `logout`).
-* Save discovered host+path entries to a text file.
+* Multi-threaded scanning of list of common admin/management paths.
+* Detects status codes (200, 3xx, 4xx).
+* Save host+path entries in text file.
 * Simple CLI with options for threads, timeout, and following redirects.
 
 ## Requirements
@@ -23,20 +23,13 @@ Install dependencies with pip:
 pip install requests colorama
 ```
 
-## Files
-
-* `noredirecthunter.py` — main script (the code you provided).
-* `README.md` — this file.
-
-(Replace `no-red.py` with the actual filename you use.)
-
 ## Usage
 
 ```
 usage: no-red.py [-h] (-u URL | -f FILE) [--follow-redirects]
                            [-o OUTPUT] [--timeout TIMEOUT] [-t THREADS]
 
-No Redirect Hunter
+|No Redirect Hunter|
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -53,36 +46,29 @@ optional arguments:
 Scan a single URL:
 
 ```bash
-python noredirecthunter.py -u https://example.com
+python no-red.py -u https://target.pk
 ```
 
 Scan a list of targets from `targets.txt`:
 
 ```bash
-python noredirecthunter.py -f targets.txt -t 20 --timeout 8 -o found_paths.txt
+python no-red.py -f targets.txt -t 20 --timeout 8 -o found_paths.txt
 ```
 
 Scan and follow redirects:
 
 ```bash
-python noredirecthunter.py -u target.pk --follow-redirects -o saved.txt
+python no-red.py -u target.pk --follow-redirects -o saved.txt
 ```
 
 ### output
 
 ```
-http://example.com/admin/dashboard.php (200) · keyword matched:dashboard
-http://example.com/admin/index.php (404)
-http://example.com/wp-admin/ (301)
-saved: found_paths.txt (2)
-```
-
-Saved output format (`found_paths.txt`) — each discovered entry is saved as:
-
-```
-example.com/admin/dashboard.php
-another.example.com/wp-admin
+http://target.pk/admin/dashboard.php (200) · keyword matched:dashboard
+http://target.pk/admin/index.php (404)
+http://target.pk/wp-admin/ (301)
+saved: saved.txt (2)
 ```
 ## Ethical & legal notice
 
-This tool actively probes web servers. Only run scans against systems that you own or have explicit permission to test. Unauthorized scanning can be considered intrusive and may be illegal in many jurisdictions. Use responsibly.
+This tool actively probes web servers. Only run scans against systems that you own or have explicit permission to test. Unauthorized scanning can be considered intrusive and may be illegal. Use responsibly.
