@@ -6,8 +6,6 @@
 
 * Multi-threaded scanning of list of common admin/management paths.
 * Detects status codes (200, 3xx, 4xx).
-* Save host+path entries in text file.
-* Simple CLI with options for threads, timeout, and following redirects.
 
 ## Requirements
 
